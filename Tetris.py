@@ -4,7 +4,7 @@ import pygame as pg
 import random
 
 pg.init()
-
+pg.display.set_caption("TETRIS.py")
 FPS = 60
 WSIZE = (440, 500)
 TSIDE = 25
@@ -80,8 +80,8 @@ while running:
     screen.fill("black")
 
     best_score = max(score, best_score)
-    text = font.render(f"Next:", True, "White")
-    screen.blit(text, (MSIZE[0] * TSIDE + 15, 40))
+    text = font.render(f"TETRIS", True, "White")
+    screen.blit(text, (MSIZE[0] * TSIDE + 50, 40))
     text = font.render(f"Score: {score}", True, "Yellow")
     screen.blit(text, (MSIZE[0] * TSIDE + 15, WSIZE[1] - 100))
     text = font.render(f"Best: {best_score}", True, "Yellow")
