@@ -12,6 +12,7 @@ MSIZE = (10, 20)
 
 font = pg.font.SysFont("", 40)
 SMARTBOT = True
+SMARTBOT_SPEEDBOOST = False
 
 
 def rotate_right90(points):
@@ -81,19 +82,29 @@ def player_step(key):
 first = True
 
 
-def step_q(fig, y):
-    min_y = min([y + p[1] for p in fig])
-    max_y = max([y + p[1] for p in fig])
-    return max_y, len([1 for p in fig if (y + p[1]) == max_y])
+def step_q(fig, _pos):
+    min_y = min([_pos[1] + p[1] for p in fig])
+    max_y = max([_pos[1] + p[1] for p in fig])
+    s = get_fig_contact_area(fig, _pos)
+    return max_y, s + len([1 for p in fig if (_pos[1] + p[1]) == max_y])
 
+
+def get_fig_contact_area(fig, _pos):
+    s = 0
+    for p in fig:
+        x, y = p[0] + _pos[0], p[1] + _pos[1]
+        s += bool(field.get((x + 1, y))) + bool(field.get((x - 1, y))) + bool(field.get((x, y + 1)))
+    return s
 
 def compare_q(q1, q2):
+    # if q1[1] > q2[1] or q1[0] > q2[0]:
+    #     return True
     if q1[0] > q2[0] or (q1[0] == q2[0] and q1[1] > q2[1]):
         return True
     return False
 
 
-def smartbot(start_x=2, start_y=2):
+def smartbot(start_y=2):
     # maxy, x, rotates
     best = (-1, 0, 0)
     for x in range(MSIZE[0]):
@@ -107,7 +118,7 @@ def smartbot(start_x=2, start_y=2):
             for iy in range(1, MSIZE[1]):
                 y = start_y + iy
                 if check_collide(fig, (x, y)):
-                    q = step_q(fig, y - 1)
+                    q = step_q(fig, (x, y - 1))
                     if best[0] == -1 or compare_q(q, best[0]):
                         best = (q, x, k)
                     break
@@ -132,6 +143,7 @@ figures = [((-1, 0), (0, 0), (1, 0), (1, 1)),  # Г
 game_over = False
 speed_boost = False
 timer = 0
+timer_max = 3
 best_score = score = 0
 
 global player_figure, player_color, pos
@@ -178,7 +190,7 @@ while running:
 
     if not game_over:
         if SMARTBOT:
-            best_step = smartbot()
+            best_step = smartbot(pos[1])
             if best_step[0] != -1:
                 # if best_step[2]:
                 #     player_step(K_ROTATE)
@@ -187,14 +199,15 @@ while running:
                 #         player_step(K_RIGHT)
                 #     else:
                 #         player_step(K_LEFT)
+                for ik in range(best_step[2]):
+                    player_step(K_ROTATE)
                 for ix in range(abs(pos[0] - best_step[1])):
                     if best_step[1] > pos[1]:
                         player_step(K_RIGHT)
                     else:
                         player_step(K_LEFT)
-                for ik in range(best_step[2]):
-                    player_step(K_ROTATE)
-            player_step(K_SPEED)
+            if SMARTBOT_SPEEDBOOST:
+                player_step(K_SPEED)
 
         # отрисовка игрока
         for point in player_figure:
@@ -239,6 +252,6 @@ while running:
                 new_figure()
                 score += 1
 
-            timer = 30
+            timer = timer_max
         timer -= 1
     pg.display.flip()
